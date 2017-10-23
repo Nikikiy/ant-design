@@ -1,12 +1,21 @@
 ---
 order: 5
-title: 文本域
+title:
+    zh-CN: 文本域
+    en-US: TextArea
 ---
 
-用于多行输入，指定 `type` 为一个特殊的 `textarea`。
+## zh-CN
+
+用于多行输入。
+
+## en-US
+
+For multi-line input.
 
 ````jsx
 import { Input } from 'antd';
+const { TextArea } = Input;
 
-ReactDOM.render(<Input type="textarea" rows={4} />, mountNode);
+ReactDOM.render(<TextArea rows={4} />, mountNode);
 ````

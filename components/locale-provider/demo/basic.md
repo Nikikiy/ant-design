@@ -11,19 +11,17 @@ title:
 
 ## en-US
 
-Wrap you app with `LocaleProvider`, and apply the corresponding language package.
+Wrap your app with `LocaleProvider`, and apply the corresponding language package.
 
 ````jsx
 import { Pagination, LocaleProvider } from 'antd';
 import enUS from 'antd/lib/locale-provider/en_US';
 
-function App() {
-  return (
-    <div>
-      <Pagination defaultCurrent={1} total={50} showSizeChanger />
-    </div>
-  );
-}
+const App = () => (
+  <div>
+    <Pagination defaultCurrent={1} total={50} showSizeChanger />
+  </div>
+);
 
 ReactDOM.render(
   <LocaleProvider locale={enUS}>

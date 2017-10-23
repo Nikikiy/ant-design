@@ -1,23 +1,32 @@
-import * as React from 'react';
+import React from 'react';
 import Notification from 'rc-notification';
 import Icon from '../icon';
 
-let defaultDuration = 1.5;
+let defaultDuration = 3;
 let defaultTop;
 let messageInstance;
 let key = 1;
 let prefixCls = 'ant-message';
+let getContainer;
 
 function getMessageInstance() {
   messageInstance = messageInstance || Notification.newInstance({
-    prefixCls,
-    transitionName: 'move-up',
-    style: { top: defaultTop }, // 覆盖原来的样式
-  });
+      prefixCls,
+      transitionName: 'move-up',
+      style: { top: defaultTop }, // 覆盖原来的样式
+      getContainer,
+    });
   return messageInstance;
 }
 
-function notice(content, duration = defaultDuration, type, onClose) {
+type NoticeType = 'info' | 'success' | 'error' | 'warning' | 'loading';
+
+function notice(
+  content: React.ReactNode,
+  duration: number = defaultDuration,
+  type: NoticeType,
+  onClose?: () => void,
+) {
   let iconType = ({
     info: 'info-circle',
     success: 'check-circle',
@@ -47,35 +56,50 @@ function notice(content, duration = defaultDuration, type, onClose) {
   }());
 }
 
+type ConfigContent = React.ReactNode | string;
+type ConfigDuration = number;
+export type ConfigOnClose = () => void;
+
+export interface ConfigOptions {
+  top?: number;
+  duration?: number;
+  prefixCls?: string;
+  getContainer?: () => HTMLElement;
+}
+
 export default {
-  info(content, duration, onClose) {
+  info(content: ConfigContent, duration?: ConfigDuration, onClose?: ConfigOnClose) {
     return notice(content, duration, 'info', onClose);
   },
-  success(content, duration, onClose) {
+  success(content: ConfigContent, duration?: ConfigDuration, onClose?: ConfigOnClose) {
     return notice(content, duration, 'success', onClose);
   },
-  error(content, duration, onClose) {
+  error(content: ConfigContent, duration?: ConfigDuration, onClose?: ConfigOnClose) {
     return notice(content, duration, 'error', onClose);
   },
   // Departed usage, please use warning()
-  warn(content, duration, onClose) {
+  warn(content: ConfigContent, duration?: ConfigDuration, onClose?: ConfigOnClose) {
     return notice(content, duration, 'warning', onClose);
   },
-  warning(content, duration, onClose) {
+  warning(content: ConfigContent, duration?: ConfigDuration, onClose?: ConfigOnClose) {
     return notice(content, duration, 'warning', onClose);
   },
-  loading(content, duration, onClose) {
+  loading(content: ConfigContent, duration?: ConfigDuration, onClose?: ConfigOnClose) {
     return notice(content, duration, 'loading', onClose);
   },
-  config(options) {
-    if ('top' in options) {
+  config(options: ConfigOptions) {
+    if (options.top !== undefined) {
       defaultTop = options.top;
+      messageInstance = null; // delete messageInstance for new defaultTop
     }
-    if ('duration' in options) {
+    if (options.duration !== undefined) {
       defaultDuration = options.duration;
     }
-    if ('prefixCls' in options) {
+    if (options.prefixCls !== undefined) {
       prefixCls = options.prefixCls;
+    }
+    if (options.getContainer !== undefined) {
+      getContainer = options.getContainer;
     }
   },
   destroy() {

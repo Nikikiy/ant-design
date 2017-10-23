@@ -1,22 +1,26 @@
-import * as React from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
-import Dialog from './Modal';
-import Icon from '../icon';
-import Button from '../button';
 import classNames from 'classnames';
+import Icon from '../icon';
+import Dialog from './Modal';
+import ActionButton from './ActionButton';
 import { getConfirmLocale } from './locale';
-import assign from 'object-assign';
 
 export default function confirm(config) {
-  const props = assign({}, config);
+  const props = {
+    iconType: 'question-circle',
+    okType: 'primary',
+    ...config,
+  };
+  const prefixCls = props.prefixCls || 'ant-confirm';
   let div = document.createElement('div');
   document.body.appendChild(div);
 
-  let d;
-  props.iconType = props.iconType || 'question-circle';
-
   let width = props.width || 416;
   let style = props.style || {};
+
+  // 默认为 false，保持旧版默认行为
+  const maskClosable = props.maskClosable === undefined ? false : props.maskClosable;
 
   // 默认为 true，保持向下兼容
   if (!('okCancel' in props)) {
@@ -29,107 +33,71 @@ export default function confirm(config) {
     (props.okCancel ? runtimeLocale.okText : runtimeLocale.justOkText);
   props.cancelText = props.cancelText || runtimeLocale.cancelText;
 
-  function close() {
-    d.setState({
-      visible: false,
-    });
-    ReactDOM.unmountComponentAtNode(div);
-    div.parentNode.removeChild(div);
-  }
-
-  function onCancel() {
-    let cancelFn = props.onCancel;
-    if (cancelFn) {
-      let ret;
-      if (cancelFn.length) {
-        ret = cancelFn(close);
-      } else {
-        ret = cancelFn();
-        if (!ret) {
-          close();
-        }
-      }
-      if (ret && ret.then) {
-        ret.then(close);
-      }
-    } else {
-      close();
+  function close(...args) {
+    const unmountResult = ReactDOM.unmountComponentAtNode(div);
+    if (unmountResult && div.parentNode) {
+      div.parentNode.removeChild(div);
     }
-  }
-
-  function onOk() {
-    let okFn = props.onOk;
-    if (okFn) {
-      let ret;
-      if (okFn.length) {
-        ret = okFn(close);
-      } else {
-        ret = okFn();
-        if (!ret) {
-          close();
-        }
-      }
-      if (ret && ret.then) {
-        ret.then(close);
-      }
-    } else {
-      close();
+    const triggerCancel = args && args.length &&
+      args.some(param => param && param.triggerCancel);
+    if (props.onCancel && triggerCancel) {
+      props.onCancel(...args);
     }
   }
 
   let body = (
-    <div className="ant-confirm-body">
+    <div className={`${prefixCls}-body`}>
       <Icon type={props.iconType} />
-      <span className="ant-confirm-title">{props.title}</span>
-      <div className="ant-confirm-content">{props.content}</div>
+      <span className={`${prefixCls}-title`}>{props.title}</span>
+      <div className={`${prefixCls}-content`}>{props.content}</div>
     </div>
   );
 
-  let footer = null;
+  let footer: React.ReactElement<any> | null = null;
   if (props.okCancel) {
     footer = (
-      <div className="ant-confirm-btns">
-        <Button type="ghost" size="large" onClick={onCancel}>
+      <div className={`${prefixCls}-btns`}>
+        <ActionButton actionFn={props.onCancel} closeModal={close}>
           {props.cancelText}
-        </Button>
-        <Button type="primary" size="large" onClick={onOk}>
+        </ActionButton>
+        <ActionButton type={props.okType} actionFn={props.onOk} closeModal={close} autoFocus>
           {props.okText}
-        </Button>
+        </ActionButton>
       </div>
     );
   } else {
     footer = (
-      <div className="ant-confirm-btns">
-        <Button type="primary" size="large" onClick={onOk}>
+      <div className={`${prefixCls}-btns`}>
+        <ActionButton type={props.okType} actionFn={props.onOk} closeModal={close} autoFocus>
           {props.okText}
-        </Button>
+        </ActionButton>
       </div>
     );
   }
 
-  const classString = classNames({
-    'ant-confirm': true,
-    [`ant-confirm-${props.type}`]: true,
-    [props.className]: !!props.className,
-  });
+  const classString = classNames(prefixCls, {
+    [`${prefixCls}-${props.type}`]: true,
+  }, props.className);
 
   ReactDOM.render(
     <Dialog
       className={classString}
+      onCancel={close.bind(this, { triggerCancel: true })}
       visible
-      closable={false}
       title=""
       transitionName="zoom"
       footer=""
       maskTransitionName="fade"
+      maskClosable={maskClosable}
       style={style}
       width={width}
+      zIndex={props.zIndex}
     >
-      <div style={{ zoom: 1, overflow: 'hidden' }}>{body} {footer}</div>
+      <div className={`${prefixCls}-body-wrapper`}>
+        {body} {footer}
+      </div>
     </Dialog>
-  , div, function () {
-    d = this;
-  });
+  , div);
 
   return {
     destroy: close,

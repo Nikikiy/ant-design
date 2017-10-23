@@ -1,11 +1,14 @@
-import * as React from 'react';
+import React from 'react';
 import Tooltip from '../tooltip';
-import getPlacements from './placements';
-import warning from 'warning';
+import { AbstractTooltipProps } from '../tooltip';
+import warning from '../_util/warning';
 
-const placements = getPlacements();
+export interface PopoverProps extends AbstractTooltipProps {
+   title?: React.ReactNode;
+   content?: React.ReactNode;
+}
 
-export default class Popover extends React.Component {
+export default class Popover extends React.Component<PopoverProps, any> {
   static defaultProps = {
     prefixCls: 'ant-popover',
     placement: 'top',
@@ -16,41 +19,40 @@ export default class Popover extends React.Component {
     overlayStyle: {},
   };
 
-  render() {
-    return (
-      <Tooltip transitionName={this.props.transitionName}
-        builtinPlacements={placements}
-        ref="tooltip"
-        {...this.props}
-        overlay={this.getOverlay()}
-      >
-        {this.props.children}
-      </Tooltip>
-    );
-  }
+  refs: {
+    tooltip: Tooltip,
+  };
 
   getPopupDomNode() {
     return this.refs.tooltip.getPopupDomNode();
   }
 
-  componentDidMount() {
-    if ('overlay' in this.props) {
-      warning(false, '`overlay` prop of Popover is deprecated, use `content` instead.');
-    }
-  }
-
   getOverlay() {
-    // use content replace overlay
-    // keep overlay for compatibility
-    const { title, prefixCls, overlay, content } = this.props;
-
+    const { title, prefixCls, content } = this.props;
+    warning(
+      !('overlay' in this.props),
+      'Popover[overlay] is removed, please use Popover[content] instead, ' +
+      'see: https://u.ant.design/popover-content',
+    );
     return (
       <div>
         {title && <div className={`${prefixCls}-title`}>{title}</div>}
         <div className={`${prefixCls}-inner-content`}>
-          {content || overlay}
+          {content}
         </div>
       </div>
+    );
+  }
+
+  render() {
+    const props = { ...this.props };
+    delete props.title;
+    return (
+      <Tooltip
+        {...props}
+        ref="tooltip"
+        overlay={this.getOverlay()}
+      />
     );
   }
 }

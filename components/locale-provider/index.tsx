@@ -1,22 +1,42 @@
-import * as React from 'react';
-import { changeConfirmLocale } from '../modal/locale';
+import React from 'react';
+import PropTypes from 'prop-types';
+import { ModalLocale, changeConfirmLocale } from '../modal/locale';
 
-export default class LocaleProvider extends React.Component {
+export interface LocaleProviderProps {
+  locale: {
+    Pagination?: Object,
+    DatePicker?: Object,
+    TimePicker?: Object,
+    Calendar?: Object,
+    Table?: Object,
+    Modal?: ModalLocale,
+    Popconfirm?: Object,
+    Transfer?: Object,
+    Select?: Object,
+    Upload?: Object,
+  };
+  children?: React.ReactElement<any>;
+}
+
+export default class LocaleProvider extends React.Component<LocaleProviderProps, any> {
   static propTypes = {
-    locale: React.PropTypes.object,
+    locale: PropTypes.object,
   };
 
   static childContextTypes = {
-    antLocale: React.PropTypes.object,
+    antLocale: PropTypes.object,
   };
 
   getChildContext() {
     return {
-      antLocale: this.props.locale,
+      antLocale: {
+        ...this.props.locale,
+        exist: true,
+      },
     };
   }
 
-  componentDidMount() {
+  componentWillMount() {
     this.componentDidUpdate();
   }
 
